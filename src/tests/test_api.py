@@ -1,4 +1,4 @@
-from sharepoint.api import SharepointApi
+from src.api import SharepointApi
 import responses
 import unittest
 from unittest import mock
