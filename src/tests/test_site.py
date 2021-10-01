@@ -1,5 +1,5 @@
-from sharepoint.api import SharepointApi
-from sharepoint.site import Site
+from src.simple_sharepoint.api import SharepointApi
+from src.simple_sharepoint.site import Site
 import responses
 import unittest
 from unittest import mock
