@@ -8,3 +8,6 @@ class SharePointError(Exception):
 
 class SharePointRequestError(SharePointError):
     pass
+
+class SharePointListItemError(SharePointError):
+    pass

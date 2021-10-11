@@ -1,9 +1,64 @@
-from collections import namedtuple
+from src.simple_sharepoint.errors import SharePointListItemError
+
+from collections.abc import Iterable
 from copy import copy
 
-AttributeMap = namedtuple(
-    "AttributeMap", ["sharepoint_name", "class_name", "include_in_output"]
-)
+
+class AttributeMap:
+    """
+    Provides mapping between a SharePoint field internal name and
+    the attribute name in the ListItem object. All attribute names
+    are forced into lowercase. The include_in_output argument allows
+    you to mark if fields should not be written back to SharePoint
+    """
+
+    def __init__(self, class_name, sharepoint_name, include_in_output):
+        self.class_name = class_name
+        self.sharepoint_name = sharepoint_name
+        self.include_in_output = include_in_output
+
+    @classmethod
+    def attribute_map_list_from_list(cls, list_of_items):
+        """
+        Given a list of tuples or lists of length 3, creates
+        an attribute map for each record and returns the list
+        of attribute maps
+        """
+        return_list = list()
+
+        if not isinstance(list_of_items, Iterable):
+            list_of_items = [
+                list_of_items,
+            ]
+
+        for x in list_of_items:
+            new_item = cls.__new__(cls)
+            try:
+                new_item.class_name = x[0]
+                new_item.sharepoint_name = x[1]
+                new_item.include_in_output = x[2]
+                return_list.append(new_item)
+            except:
+                pass
+
+        return return_list
+
+    @classmethod
+    def from_dict(cls, map_dict):
+        new_item = cls.__new__(cls)
+        new_item.class_name = map_dict.get("class_name")
+        new_item.sharepoint_name = map_dict.get("sharepoint_name")
+        new_item.include_in_output = map_dict.get("include_in_output")
+
+        return new_item
+
+    @property
+    def class_name(self):
+        return None if self._class_name is None else self._class_name.lower()
+
+    @class_name.setter
+    def class_name(self, val):
+        self._class_name = val
 
 
 class ListItem(object):
@@ -14,25 +69,37 @@ class ListItem(object):
     you to push changes to Sharepoint with the proper Sharepoint field names
     """
 
-    def __init__(self, sp_list, attribute_map, record):
-        self._attribute_map = attribute_map
-        self.sp_list = sp_list
+    def __init__(self):
+        self._attribute_map = None
+        self.sp_list = None
         self.id = None
+        self._original_listitem = None
 
+    @classmethod
+    def from_sharepoint_record(cls, sp_list, attribute_map, record):
+        list_item = cls()
+        list_item.sp_list = sp_list
+        list_item._attribute_map = attribute_map
         includes_id = False
-        for x in self._attribute_map:
-            setattr(
-                self,
-                x.class_name,
-                record.get(x.sharepoint_name, record.get(x.class_name)),
-            )
+        for x in list_item._attribute_map:
+            setattr(list_item, x.class_name, record.get(x.sharepoint_name))
             if not includes_id and x.sharepoint_name.lower() == "id":
                 includes_id = True
 
         if not includes_id:
-            self.id = record.get("Id")
+            list_item.id = record.get("Id")
 
-        self._original_listitem = copy(self) if self.id else None
+        list_item._original_listitem = copy(list_item) if list_item.id else None
+
+        return list_item
+
+    @classmethod
+    def from_dict(cls, record):
+        list_item = cls()
+        for k, v in record.items():
+            setattr(list_item, k.lower(), v)
+
+        return list_item
 
     def duplicate(self):
         new_listitem = copy(self)
@@ -44,6 +111,10 @@ class ListItem(object):
         return new_listitem
 
     def save(self, force_save=False):
+        if self.sp_list is None:
+            raise SharePointListItemError(
+                "A SharePoint list must be set in order to save a ListItem"
+            )
         if self.id is None:
             json = self._to_upload_format("new")
             resp = self.sp_list.add_list_item(json)
@@ -76,6 +147,9 @@ class ListItem(object):
 
         :raises: ValueError
         """
+
+        if not self._attribute_map:
+            return {}
 
         record_dict = {}
 
@@ -111,6 +185,8 @@ class ListItem(object):
 
         :returns: dict
         """
+        if not self._attribute_map:
+            return {}
 
         sp_dict = {}
         for x in self._attribute_map:
