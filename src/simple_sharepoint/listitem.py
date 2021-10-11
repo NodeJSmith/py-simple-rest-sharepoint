@@ -27,7 +27,8 @@ class ListItem(object):
         if not includes_id:
             self.id = record.get("Id")
 
-        self._original_listitem = copy(self)
+        if self.id:
+            self._original_listitem = copy(self)
 
     def duplicate(self):
         new_listitem = copy(self)
