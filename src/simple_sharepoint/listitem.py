@@ -94,8 +94,18 @@ class ListItem(object):
         return list_item
 
     @classmethod
-    def from_dict(cls, record):
+    def from_dict(cls, record, sp_list=None, attribute_map=None):
+        if bool(sp_list) ^ bool(attribute_map):
+            raise SharePointListItemError(
+                "You must either pass both sp_list and attribute_map or neither"
+            )
         list_item = cls()
+        if sp_list:
+            list_item.sp_list = sp_list
+
+        if attribute_map:
+            list_item._attribute_map = attribute_map
+
         for k, v in record.items():
             setattr(list_item, k.lower(), v)
 
