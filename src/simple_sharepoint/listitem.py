@@ -2,7 +2,8 @@ from collections import namedtuple
 from copy import copy
 
 AttributeMap = namedtuple(
-    "AttributeMap", ["sharepoint_name", "class_name", "include_in_output"])
+    "AttributeMap", ["sharepoint_name", "class_name", "include_in_output"]
+)
 
 
 class ListItem(object):
@@ -20,7 +21,11 @@ class ListItem(object):
 
         includes_id = False
         for x in self._attribute_map:
-            setattr(self, x.class_name, record.get(x.sharepoint_name))
+            setattr(
+                self,
+                x.class_name,
+                record.get(x.sharepoint_name, record.get(x.class_name)),
+            )
             if not includes_id and x.sharepoint_name.lower() == "id":
                 includes_id = True
 
@@ -31,7 +36,7 @@ class ListItem(object):
 
     def duplicate(self):
         new_listitem = copy(self)
-        if hasattr(self, 'id'):
+        if hasattr(self, "id"):
             new_listitem.id = None
 
         new_listitem._original_listitem = None
@@ -74,9 +79,10 @@ class ListItem(object):
 
         record_dict = {}
 
-        if record_type not in ['change', 'new', 'all']:
+        if record_type not in ["change", "new", "all"]:
             raise ValueError(
-                "record_type parameter not valid, must be 'change', 'new', or 'all'")
+                "record_type parameter not valid, must be 'change', 'new', or 'all'"
+            )
 
         # if changes, only include changed values
         if record_type == "change":
@@ -89,9 +95,9 @@ class ListItem(object):
         # if new then remove the Id field (new values don't have an Id), set the list_item_type in the metadata, and
         # set the Title field to the EID
         if record_type == "new":
-            record_dict['__metadata'] = {"type": self.sp_list.item_type}
+            record_dict["__metadata"] = {"type": self.sp_list.item_type}
             if "Id" in record_dict:
-                record_dict.pop('Id')
+                record_dict.pop("Id")
             record_dict.setdefault("Title", "New Record")
         # else:
         #     if record_dict and "Id" not in record_dict:
@@ -114,21 +120,27 @@ class ListItem(object):
         return sp_dict
 
     def property_has_changed(self, class_name):
-        if self.original_listitem is None:  # if no original_listitem then it is by default a change
+        if (
+            self.original_listitem is None
+        ):  # if no original_listitem then it is by default a change
             return True
 
         for x in self._attribute_map:
             if class_name == x.class_name:
-                return getattr(self, class_name) != getattr(self.original_listitem, class_name)
+                return getattr(self, class_name) != getattr(
+                    self.original_listitem, class_name
+                )
 
     @property
     def has_changed(self):
         """Property that checks if current object matches original object
 
-         :returns: bool
-         """
+        :returns: bool
+        """
 
-        if self.original_listitem and self.original_listitem._to_upload_format("all") == self._to_upload_format("all"):
+        if self.original_listitem and self.original_listitem._to_upload_format(
+            "all"
+        ) == self._to_upload_format("all"):
             return False
         else:
             return True
