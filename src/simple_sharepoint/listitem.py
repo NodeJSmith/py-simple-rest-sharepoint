@@ -76,7 +76,7 @@ class ListItem(object):
         self._original_listitem = None
 
     @classmethod
-    def from_sharepoint_record(cls, sp_list, attribute_map, record):
+    def from_sharepoint_record(cls, record, sp_list, attribute_map):
         list_item = cls()
         list_item.sp_list = sp_list
         list_item._attribute_map = attribute_map

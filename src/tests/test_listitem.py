@@ -19,7 +19,7 @@ class TestListItem(unittest.TestCase):
         self.sp_list = MagicMock()
         self.sp_record = {"Id": 1, "Title": "Test Value"}
         self.list_item_from_sp = ListItem().from_sharepoint_record(
-            self.sp_list, self.attribute_maps, self.sp_record
+            self.sp_record, self.sp_list, self.attribute_maps
         )
 
         return super().setUp()
