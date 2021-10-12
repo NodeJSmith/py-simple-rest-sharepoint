@@ -143,7 +143,6 @@ class SharepointApi(BaseSharepointApi):
     def _update_headers(self, request):
         method_headers = {
             "POST": {"content-type": "application/json;odata=verbose",
-                     "Accept": "application/json;odata=verbose",
                      "X-RequestDigest": self.contextinfo['FormDigestValue']},
             "DELETE": {
                 'X-HTTP-Method': 'DELETE',
