@@ -111,6 +111,18 @@ class ListItem(object):
 
         return list_item
 
+    def update_from_dict(self, newdata):
+        for key, value in newdata.items():
+            setattr(self, key, value)
+
+    def update_from_sp_record(self, sp_record):
+        for x in self._attribute_map:
+            setattr(self, x.class_name, sp_record.get(x.sharepoint_name))
+
+    def update_from_list_item(self, list_item):
+        for x in self._attribute_map:
+            setattr(self, x.class_name, getattr(list_item, x.class_name))
+
     def duplicate(self):
         new_listitem = copy(self)
         if hasattr(self, "id"):
