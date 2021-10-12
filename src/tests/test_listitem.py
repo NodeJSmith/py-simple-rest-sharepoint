@@ -1,5 +1,5 @@
-from simple_sharepoint.listitem import ListItem, AttributeMap
-from simple_sharepoint.errors import SharePointListItemError
+from src.simple_sharepoint.listitem import ListItem, AttributeMap
+from src.simple_sharepoint.errors import SharePointListItemError
 import responses
 import unittest
 from unittest import mock

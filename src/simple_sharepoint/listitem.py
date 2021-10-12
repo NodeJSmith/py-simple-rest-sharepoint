@@ -1,4 +1,4 @@
-from simple_sharepoint.errors import SharePointListItemError
+from .errors import SharePointListItemError
 
 from collections.abc import Iterable
 from copy import copy
